@@ -1,0 +1,24 @@
+name: Late Homework Workflow
+
+on:
+  issues:
+    types: [opened, reopened]
+
+jobs:
+  main:
+    name: Grade Late Homework
+    runs-on: ubuntu-latest
+
+    env:
+      ERROR_MESSAGE: 'Unknown error'
+      GRADE_RUNID: ''
+
+    steps:
+      - name: Grade Late Homework
+        uses: usf-cs272-fall2022/action-homework-grade@main
+        id: action-homework-grade
+        with:
+          access_token: ${{ secrets.GITHUB_TOKEN }}
+          artifact_name: "check-deadline-results"
+          artifact_json: "check-deadline-results.json"
+          workflow_name: "classroom.yml"

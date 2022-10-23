@@ -1,0 +1,89 @@
+name: GitHub Classroom Workflow
+
+on:
+  push:
+    branches: [main]
+
+  workflow_dispatch:
+    inputs:
+      extension_hours:
+        description: 'Amount of extension granted (in hours)'
+        default: 0
+        required: false
+        type: 'number'
+
+jobs:
+  # separate job so status of autograder affects status of job
+  # without having to use continue-on-error and allowing concurrent followup jobs
+  grade:
+    name: Autograding
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    outputs:
+      homework_name: ${{ steps.setup-homework.outputs.homework_name }}
+      points: ${{ steps.autograder.outputs.points }}
+      outcome: ${{ steps.autograder.outcome }}
+
+    steps:
+      # the autograder action does not have access to environment variables
+      # the setup action hard-codes those values where needed
+      - name: Setup Homework Test Environment
+        id: setup-homework
+        uses: usf-cs272-fall2022/action-homework-setup@main
+
+      # autograder stops commands while running
+      - name: Run Autograder
+        id: autograder
+        uses: education/autograding@v1
+
+  result:
+    name: Check Autograding Results
+    runs-on: ubuntu-latest
+    timeout-minutes: 1
+    if: always()
+    needs: grade
+
+    steps:
+      # calculate late penalty
+      - name: Check Deadline
+        id: check-deadline
+        uses: usf-cs272-fall2022/action-check-deadline@main
+        with:
+          assignment_name: "${{ needs.grade.outputs.homework_name }}"
+          starting_points: "${{ needs.grade.outputs.points }}"
+          extension_hours: "${{ inputs.extension_hours }}"
+
+      # get results from artifact
+      - name: Download Results
+        id: download-results
+        uses: actions/download-artifact@v3
+        with:
+          name: '${{ steps.check-deadline.outputs.results_name }}'
+
+      # display results as annotation
+      - name: Display Results
+        id: display-results
+        uses: actions/github-script@v6
+        env:
+          RESULTS_JSON: '${{ steps.check-deadline.outputs.results_json }}'
+        with:
+          script: |
+            const output = require(`./${process.env.RESULTS_JSON}`);
+            console.log(JSON.stringify(output));
+            console.log('');
+
+            if (parseFloat(output.late_multiplier) < 1) {
+              core.notice(`${output.assignment_name}: ${output.grade_points} / ${output.grade_possible} Points (${output.grade_percent}%)`);
+            }
+            else {
+              core.warning(`${output.assignment_name}: ${output.grade_points} / ${output.grade_possible} Points (${output.grade_percent}%, Late Penalty: -${output.late_points} Points)`);
+            }
+            return output;
+
+      # create badge for readme file
+      - name: Create Badge
+        uses: usf-cs272-fall2022/action-homework-badge@main
+        with:
+          outcome: ${{ needs.grade.outputs.outcome }}
+          points: ${{ steps.check-deadline.outputs.grade_points }}
