@@ -1,4 +1,4 @@
-HomeworkName
+PrimeFinder
 =================================================
 
 ![Points](../../blob/badges/points.svg)
