@@ -160,9 +160,15 @@ public class PrimeFinderTest {
 			Assertions.assertTimeoutPreemptively(GLOBAL_TIMEOUT, () -> {
 				double single = new SingleBenchmarker().benchmark(max);
 				double multi = new MultiBenchmarker(threads).benchmark(max);
+				double speedup = single / multi;
+
 				String debug = String.format(SINGLE_FORMAT, single, multi, single / multi);
 				System.out.println(debug);
-				Assertions.assertTrue(single >= multi, debug);
+
+				Assertions.assertAll(debug,
+						() -> Assertions.assertTrue(multi < single),
+						() -> Assertions.assertTrue(speedup > 1.5)
+				);
 			});
 		}
 	}
@@ -186,9 +192,15 @@ public class PrimeFinderTest {
 			Assertions.assertTimeoutPreemptively(GLOBAL_TIMEOUT, () -> {
 				double multi1 = new MultiBenchmarker(1).benchmark(max);
 				double multi3 = new MultiBenchmarker(3).benchmark(max);
-				String debug = String.format(MULTI_FORMAT, multi1, multi3, multi1 / multi3);
+				double speedup = multi1 / multi3;
+
+				String debug = String.format(MULTI_FORMAT, multi1, multi3, speedup);
 				System.out.println(debug);
-				Assertions.assertTrue(multi3 < multi1, debug);
+
+				Assertions.assertAll(debug,
+						() -> Assertions.assertTrue(multi3 < multi1),
+						() -> Assertions.assertTrue(speedup > 1.5)
+				);
 			});
 		}
 	}
