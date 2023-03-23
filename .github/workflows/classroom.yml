@@ -30,7 +30,7 @@ jobs:
       # the setup action hard-codes those values where needed
       - name: Setup Homework Test Environment
         id: setup-homework
-        uses: usf-cs272-fall2022/action-homework-setup@main
+        uses: usf-cs272-spring2023/action-homework-setup@main
 
       # autograder stops commands while running
       - name: Run Autograder
@@ -48,7 +48,7 @@ jobs:
       # calculate late penalty
       - name: Check Deadline
         id: check-deadline
-        uses: usf-cs272-fall2022/action-check-deadline@main
+        uses: usf-cs272-spring2023/action-check-deadline@main
         with:
           assignment_name: "${{ needs.grade.outputs.homework_name }}"
           starting_points: "${{ needs.grade.outputs.points }}"
@@ -83,7 +83,7 @@ jobs:
 
       # create badge for readme file
       - name: Create Badge
-        uses: usf-cs272-fall2022/action-homework-badge@main
+        uses: usf-cs272-spring2023/action-homework-badge@main
         with:
           outcome: ${{ needs.grade.outputs.outcome }}
           points: ${{ steps.check-deadline.outputs.grade_points }}

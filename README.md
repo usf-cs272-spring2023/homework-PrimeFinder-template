@@ -25,4 +25,4 @@ Use the "Tasks" view in Eclipse to find the `TODO` comments for what need to be 
 
 The tests are provided in the `src/test/` directory; do not modify any of the files in that directory. Check the run details on GitHub Actions for how many points each test group is worth. 
 
-See the [Homework Guides](https://usf-cs272-fall2022.github.io/guides/homework/) for additional details on homework requirements and submission.
+See the [Homework Guides](https://usf-cs272-spring2023.github.io/guides/homework/) for additional details on homework requirements and submission.

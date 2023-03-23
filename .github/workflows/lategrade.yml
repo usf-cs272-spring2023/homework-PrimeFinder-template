@@ -15,7 +15,7 @@ jobs:
 
     steps:
       - name: Grade Late Homework
-        uses: usf-cs272-fall2022/action-homework-grade@main
+        uses: usf-cs272-spring2023/action-homework-grade@main
         id: action-homework-grade
         with:
           access_token: ${{ secrets.GITHUB_TOKEN }}

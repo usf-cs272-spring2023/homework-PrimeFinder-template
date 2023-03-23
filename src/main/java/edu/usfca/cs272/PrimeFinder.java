@@ -7,7 +7,7 @@ import java.util.TreeSet;
  * somewhat less inefficient with multithreading using a work queue.
  *
  * @author CS 272 Software Development (University of San Francisco)
- * @version Fall 2022
+ * @version Spring 2023
  */
 public class PrimeFinder {
 	/**
