@@ -59,9 +59,8 @@ public class PrimeFinder {
 	}
 
 	/**
-	 * Uses a work queue to find all primes less than or equal to the maximum
-	 * value. The number of threads must be a positive number greater than or
-	 * equal to 1.
+	 * Uses a work queue to find all primes less than or equal to the maximum value.
+	 * The number of threads must be a positive number greater than or equal to 1.
 	 *
 	 * @param max the maximum value to evaluate if prime
 	 * @param threads number of worker threads (must be positive)
@@ -75,10 +74,10 @@ public class PrimeFinder {
 
 		/*
 		 * TODO Multithread this implementation using a work queue with one task per
-		 * number being tested. The work completed should be calling isPrime on a
-		 * single number and SAFELY adding that number to a set if it is prime.
+		 * number being tested. The work completed should be calling isPrime on a single
+		 * number and SAFELY adding that number to a set if it is prime.
 		 */
-		 throw new UnsupportedOperationException("Not yet implemented.");
+		throw new UnsupportedOperationException("Not yet implemented.");
 	}
 
 	/*

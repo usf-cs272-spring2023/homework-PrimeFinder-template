@@ -1,10 +1,6 @@
 package edu.usfca.cs272;
 
-import java.util.Arrays;
 import java.util.LinkedList;
-import java.util.Objects;
-import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
@@ -65,13 +61,11 @@ public class WorkQueue {
 			workers[i] = new Worker();
 			workers[i].start();
 		}
-
-		log.debug("Work queue initialized with {} worker threads.", workers.length);
 	}
 
 	/**
-	 * Adds a work (or task) request to the queue. A worker thread will process
-	 * this request when available.
+	 * Adds a work (or task) request to the queue. A worker thread will process this
+	 * request when available.
 	 *
 	 * @param task work request (in the form of a {@link Runnable} object)
 	 */
@@ -83,8 +77,8 @@ public class WorkQueue {
 	}
 
 	/**
-	 * Waits for all pending work (or tasks) to be finished. Does not terminate
-	 * the worker threads so that the work queue can continue to be used.
+	 * Waits for all pending work (or tasks) to be finished. Does not terminate the
+	 * worker threads so that the work queue can continue to be used.
 	 */
 	public void finish() {
 		// TODO Fix this method implementation.
@@ -105,12 +99,10 @@ public class WorkQueue {
 			for (Worker worker : workers) {
 				worker.join();
 			}
-
-			log.debug("All worker threads terminated.");
 		}
 		catch (InterruptedException e) {
 			System.err.println("Warning: Work queue interrupted while joining.");
-			log.catching(Level.DEBUG, e);
+			log.catching(Level.WARN, e);
 			Thread.currentThread().interrupt();
 		}
 	}
@@ -123,7 +115,6 @@ public class WorkQueue {
 		// safe to do unsynchronized due to volatile keyword
 		shutdown = true;
 
-		log.debug("Work queue triggering shutdown...");
 		synchronized (tasks) {
 			tasks.notifyAll();
 		}
@@ -144,8 +135,8 @@ public class WorkQueue {
 	 *
 	 * <p>
 	 * If a shutdown is detected, will exit instead of grabbing new work from the
-	 * queue. These threads will continue running in the background until a
-	 * shutdown is requested.
+	 * queue. These threads will continue running in the background until a shutdown
+	 * is requested.
 	 */
 	private class Worker extends Thread {
 		/**
@@ -163,7 +154,6 @@ public class WorkQueue {
 				while (true) {
 					synchronized (tasks) {
 						while (tasks.isEmpty() && !shutdown) {
-							log.debug("Work queue worker waiting...");
 							tasks.wait();
 						}
 
@@ -171,34 +161,28 @@ public class WorkQueue {
 						// (a) queue has work, or (b) shutdown has been called
 
 						if (shutdown) {
-							log.debug("Worker detected shutdown...");
 							break;
 						}
-						else {
-							log.debug("Worker found {} tasks...", tasks.size());
-							task = tasks.removeFirst();
-						}
+
+						task = tasks.removeFirst();
 					}
 
 					try {
-						log.trace("Work queue worker running work.");
 						task.run();
 					}
 					catch (RuntimeException e) {
 						// catch runtime exceptions to avoid leaking threads
-						System.err.printf("Warning: %s encountered an exception while running.%n", this.getName());
-						log.catching(Level.DEBUG, e);
+						System.err.printf("Error: %s encountered an exception while running.%n", this.getName());
+						log.catching(Level.ERROR, e);
 					}
 				}
 			}
 			catch (InterruptedException e) {
 				// causes early termination of worker threads
 				System.err.printf("Warning: %s interrupted while waiting.%n", this.getName());
-				log.catching(Level.DEBUG, e);
+				log.catching(Level.WARN, e);
 				Thread.currentThread().interrupt();
 			}
-
-			log.debug("Worker thread terminating...");
 		}
 	}
 
@@ -210,53 +194,17 @@ public class WorkQueue {
 	 * @param args unused
 	 */
 	public static void main(String[] args) {
-		int threads = 3;
+		WorkQueue demo = new WorkQueue();
+		int tasks = demo.workers.length + 2;
 
-		Supplier<String> activeThreads = () -> {
-			Thread[] found = new Thread[Thread.activeCount() * 2];
-			Thread.enumerate(found);
-			return Arrays.stream(found)
-					.filter(Objects::nonNull)
-					.map(Thread::getName)
-					.collect(Collectors.joining(", "));
-		};
+		for (int i = 0; i < tasks; i++) {
+			demo.execute(() -> {
+				String name = Thread.currentThread().getName();
+				System.out.println(name + " running task");
+			});
+		}
 
-		// demonstrates the workers in the background
-		WorkQueue demo = new WorkQueue(threads);
-
-		// do a bit of work in the background
-		demo.execute(() -> {
-			try {
-				Thread.sleep(500);
-			}
-			catch (InterruptedException e) {
-				Thread.currentThread().interrupt();
-			}
-		});
-
-		// finish, but do not shutdown
-		demo.finish();
-
-		// peek at the threads active in the system
-		System.out.println("Estimated active threads before join(): " + activeThreads.get());
-
-		// trigger threads to shutdown
 		demo.join();
-
-		// peek at the threads after shutdown and join
-		System.out.println("Estimated active threads after join(): " + activeThreads.get());
-
-		/*
-		 * The thread named "main" runs the main method.
-		 *
-		 * If you see any thread names starting with "ForkJoinPool", those are used
-		 * internally. They could come from Log4j2 or JUnit.
-		 *
-		 * If you see any thread names starting with "WorkerThread", those are
-		 * likely your work queue threads.
-		 *
-		 * If you see your work queue threads AFTER the join() call, something is
-		 * not quite working with the finish and/or shutdown calls.
-		 */
+		System.out.println("Workers terminated");
 	}
 }
