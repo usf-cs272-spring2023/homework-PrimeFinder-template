@@ -13,6 +13,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.CountDownLatch;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.Level;
@@ -28,6 +29,7 @@ import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
+import org.junit.jupiter.api.function.Executable;
 import org.junit.platform.engine.discovery.DiscoverySelectors;
 import org.junit.platform.launcher.TagFilter;
 import org.junit.platform.launcher.core.LauncherDiscoveryRequestBuilder;
@@ -62,7 +64,7 @@ public class PrimeFinderTest {
 		@Order(1)
 		@Tag("approach")
 		public void testEmptyQueue() {
-			Assertions.assertTimeoutPreemptively(GLOBAL_TIMEOUT, () -> {
+			Executable test = () -> {
 				System.out.println("Before: " + activeThreads());
 
 				WorkQueue queue = new WorkQueue();
@@ -71,7 +73,9 @@ public class PrimeFinderTest {
 				queue.join();
 				System.out.println(" After: " + activeThreads());
 				System.out.println();
-			});
+			};
+
+			Assertions.assertTimeoutPreemptively(GLOBAL_TIMEOUT, test, TIMEOUT_DEBUG);
 		}
 
 		/**
@@ -87,7 +91,7 @@ public class PrimeFinderTest {
 			CountDownLatch created = new CountDownLatch(tasks);
 			CountDownLatch finished = new CountDownLatch(tasks);
 
-			Assertions.assertTimeoutPreemptively(GLOBAL_TIMEOUT, () -> {
+			Executable test = () -> {
 				WorkQueue queue = new WorkQueue(tasks / 2);
 
 				for (int i = 0; i < tasks; i++) {
@@ -107,7 +111,9 @@ public class PrimeFinderTest {
 				// pending should already be 0 by this point
 				finished.await();
 				queue.join();
-			});
+			};
+
+			Assertions.assertTimeoutPreemptively(GLOBAL_TIMEOUT, test, TIMEOUT_DEBUG);
 		}
 
 		/**
@@ -123,7 +129,7 @@ public class PrimeFinderTest {
 			CountDownLatch created = new CountDownLatch(tasks);
 			CountDownLatch finished = new CountDownLatch(tasks);
 
-			Assertions.assertTimeoutPreemptively(GLOBAL_TIMEOUT, () -> {
+			Executable test = () -> {
 				WorkQueue queue = new WorkQueue(tasks / 2);
 
 				for (int i = 0; i < tasks; i++) {
@@ -143,7 +149,9 @@ public class PrimeFinderTest {
 
 				queue.join();
 				finished.await();
-			});
+			};
+
+			Assertions.assertTimeoutPreemptively(GLOBAL_TIMEOUT, test, TIMEOUT_DEBUG);
 		}
 
 		/**
@@ -158,7 +166,7 @@ public class PrimeFinderTest {
 			int tasks = 3;
 			int repeats = 2;
 
-			Assertions.assertTimeoutPreemptively(GLOBAL_TIMEOUT, () -> {
+			Executable test = () -> {
 				WorkQueue queue = new WorkQueue(workers);
 
 				for (int i = 0; i < repeats; i++) {
@@ -184,7 +192,9 @@ public class PrimeFinderTest {
 				}
 
 				queue.join();
-			});
+			};
+
+			Assertions.assertTimeoutPreemptively(GLOBAL_TIMEOUT, test, TIMEOUT_DEBUG);
 		}
 
 		/**
@@ -195,7 +205,7 @@ public class PrimeFinderTest {
 		@Test
 		@Order(5)
 		public void testThreads() {
-			Assertions.assertTimeoutPreemptively(GLOBAL_TIMEOUT, () -> {
+			Executable test = () -> {
 				Set<String> start = activeThreads();
 
 				WorkQueue queue = new WorkQueue();
@@ -207,8 +217,10 @@ public class PrimeFinderTest {
 				Thread.sleep(100); // pause to make sure threads shut down
 
 				Set<String> end = activeThreads();
-				Assertions.assertEquals(start, end);
-			});
+				Assertions.assertEquals(start, end, PRIMES_DEBUG);
+			};
+
+			Assertions.assertTimeoutPreemptively(GLOBAL_TIMEOUT, test, TIMEOUT_DEBUG);
 		}
 	}
 
@@ -234,10 +246,13 @@ public class PrimeFinderTest {
 		@RepeatedTest(3)
 		@Order(1)
 		public void testFindPrimes1Thread() {
-			Assertions.assertTimeoutPreemptively(GLOBAL_TIMEOUT, () -> {
+			Executable test = () -> {
 				TreeSet<Integer> actual = PrimeFinder.findPrimes(1000, 1);
-				Assertions.assertEquals(KNOWN_PRIMES, actual);
-			});
+				Assertions.assertEquals(KNOWN_PRIMES.size(), actual.size(), PRIMES_DEBUG);
+				Assertions.assertEquals(KNOWN_PRIMES, actual, PRIMES_DEBUG);
+			};
+
+			Assertions.assertTimeoutPreemptively(GLOBAL_TIMEOUT, test, TIMEOUT_DEBUG);
 		}
 
 		/**
@@ -248,10 +263,13 @@ public class PrimeFinderTest {
 		@RepeatedTest(3)
 		@Order(2)
 		public void testFindPrimes2Thread() {
-			Assertions.assertTimeoutPreemptively(GLOBAL_TIMEOUT, () -> {
+			Executable test = () -> {
 				TreeSet<Integer> actual = PrimeFinder.findPrimes(1000, 2);
-				Assertions.assertEquals(KNOWN_PRIMES, actual);
-			});
+				Assertions.assertEquals(KNOWN_PRIMES.size(), actual.size(), PRIMES_DEBUG);
+				Assertions.assertEquals(KNOWN_PRIMES, actual, PRIMES_DEBUG);
+			};
+
+			Assertions.assertTimeoutPreemptively(GLOBAL_TIMEOUT, test, TIMEOUT_DEBUG);
 		}
 
 		/**
@@ -263,10 +281,13 @@ public class PrimeFinderTest {
 		@RepeatedTest(3)
 		@Order(3)
 		public void testFindPrimes5Thread() {
-			Assertions.assertTimeoutPreemptively(GLOBAL_TIMEOUT, () -> {
+			Executable test = () -> {
 				TreeSet<Integer> actual = PrimeFinder.findPrimes(1000, 5);
-				Assertions.assertEquals(KNOWN_PRIMES, actual);
-			});
+				Assertions.assertEquals(KNOWN_PRIMES.size(), actual.size(), PRIMES_DEBUG);
+				Assertions.assertEquals(KNOWN_PRIMES, actual, PRIMES_DEBUG);
+			};
+
+			Assertions.assertTimeoutPreemptively(GLOBAL_TIMEOUT, test, TIMEOUT_DEBUG);
 		}
 	}
 
@@ -285,17 +306,20 @@ public class PrimeFinderTest {
 		}
 
 		/**
-		 * Verify the single-threaded implementation also passes the tests
+		 * Verify the single-threaded implementation also passes the tests.
 		 *
 		 * @see PrimeFinder#trialDivision(int)
 		 */
 		@Test
 		@Order(1)
 		public void testTrialDivision() {
-			Assertions.assertTimeoutPreemptively(GLOBAL_TIMEOUT, () -> {
+			Executable test = () -> {
 				TreeSet<Integer> actual = PrimeFinder.trialDivision(1000);
-				Assertions.assertEquals(KNOWN_PRIMES, actual);
-			});
+				Assertions.assertEquals(KNOWN_PRIMES.size(), actual.size(), PRIMES_DEBUG);
+				Assertions.assertEquals(KNOWN_PRIMES, actual, PRIMES_DEBUG);
+			};
+
+			Assertions.assertTimeoutPreemptively(GLOBAL_TIMEOUT, test, TIMEOUT_DEBUG);
 		}
 
 		/**
@@ -306,14 +330,17 @@ public class PrimeFinderTest {
 		@Order(2)
 		@RepeatedTest(3)
 		public void testSingleVersusMulti() {
-			int max = 3000;
+			int max = 5000;
 			int threads = 5;
 
-			Assertions.assertTimeoutPreemptively(GLOBAL_TIMEOUT, () -> {
+			Executable test = () -> {
 				TreeSet<Integer> expected = PrimeFinder.trialDivision(max);
 				TreeSet<Integer> actual = PrimeFinder.findPrimes(max, threads);
-				Assertions.assertEquals(expected, actual);
-			});
+				Assertions.assertEquals(expected.size(), actual.size(), PRIMES_DEBUG);
+				Assertions.assertEquals(expected, actual, PRIMES_DEBUG);
+			};
+
+			Assertions.assertTimeoutPreemptively(GLOBAL_TIMEOUT, test, TIMEOUT_DEBUG);
 		}
 	}
 
@@ -341,8 +368,7 @@ public class PrimeFinderTest {
 			int max = 5000;
 			int threads = 5;
 
-			Configurator.setAllLevels(LogManager.getRootLogger().getName(), Level.OFF);
-			Assertions.assertTimeoutPreemptively(GLOBAL_TIMEOUT, () -> {
+			Executable test = () -> {
 				double single = new SingleBenchmarker().benchmark(max);
 				double multi = new MultiBenchmarker(threads).benchmark(max);
 				double speedup = single / multi;
@@ -351,9 +377,12 @@ public class PrimeFinderTest {
 				System.out.println(debug);
 
 				Assertions.assertAll(debug,
-						() -> Assertions.assertTrue(multi < single),
-						() -> Assertions.assertTrue(speedup > 1.5));
-			});
+						() -> Assertions.assertTrue(multi < single, "Multithreading must be faster than single threading."),
+						() -> Assertions.assertTrue(speedup > 1.5, "Speedup must be 1.5x or faster."));
+			};
+
+			Configurator.setAllLevels(LogManager.getRootLogger().getName(), Level.OFF);
+			Assertions.assertTimeoutPreemptively(GLOBAL_TIMEOUT, test, TIMEOUT_DEBUG);
 		}
 	}
 
@@ -380,8 +409,7 @@ public class PrimeFinderTest {
 		public void benchmarkOneVersusThree() {
 			int max = 5000;
 
-			Configurator.setAllLevels(LogManager.getRootLogger().getName(), Level.OFF);
-			Assertions.assertTimeoutPreemptively(GLOBAL_TIMEOUT, () -> {
+			Executable test = () -> {
 				double multi1 = new MultiBenchmarker(1).benchmark(max);
 				double multi3 = new MultiBenchmarker(3).benchmark(max);
 				double speedup = multi1 / multi3;
@@ -390,9 +418,12 @@ public class PrimeFinderTest {
 				System.out.println(debug);
 
 				Assertions.assertAll(debug,
-						() -> Assertions.assertTrue(multi3 < multi1),
-						() -> Assertions.assertTrue(speedup > 1.5));
-			});
+						() -> Assertions.assertTrue(multi3 < multi1, "Using 3 workers must be faster than 1 worker thread."),
+						() -> Assertions.assertTrue(speedup > 1.5, "Speedup must be 1.5x or faster."));
+			};
+
+			Configurator.setAllLevels(LogManager.getRootLogger().getName(), Level.OFF);
+			Assertions.assertTimeoutPreemptively(GLOBAL_TIMEOUT, test, TIMEOUT_DEBUG);
 		}
 	}
 
@@ -421,12 +452,23 @@ public class PrimeFinderTest {
 		@Test
 		@Order(1)
 		public void testShutdown() throws InterruptedException {
-			Assertions.assertTimeoutPreemptively(GLOBAL_TIMEOUT, () -> {
+			Executable test = () -> {
 				Set<String> start = activeThreads();
 				PrimeFinder.findPrimes(1000, 3);
 				Set<String> end = activeThreads();
-				Assertions.assertEquals(start, end);
-			});
+
+				Supplier<String> debug = () -> {
+					Set<String> extra = new TreeSet<>(end);
+					extra.removeAll(start);
+
+					return String.format("Found %d extra threads: %s%n", extra.size(), extra);
+				};
+
+				Assertions.assertEquals(start.size(), end.size(), debug);
+				Assertions.assertEquals(start, end, debug);
+			};
+
+			Assertions.assertTimeoutPreemptively(GLOBAL_TIMEOUT, test, TIMEOUT_DEBUG);
 		}
 
 		/**
@@ -438,7 +480,8 @@ public class PrimeFinderTest {
 		@Order(2)
 		public void testThreadClass() throws IOException {
 			String source = Files.readString(SOURCE, StandardCharsets.UTF_8);
-			Assertions.assertFalse(source.matches("(?is).*\\bextends\\s+Thread\\b.*"));
+			String debug = "Do not extend Thread in PrimeFinder! Only the work queue should create worker threads.";
+			Assertions.assertFalse(source.matches("(?is).*\\bextends\\s+Thread\\b.*"), debug);
 		}
 
 		/**
@@ -450,9 +493,11 @@ public class PrimeFinderTest {
 		@Order(3)
 		public void testPending() throws IOException {
 			String source = Files.readString(SOURCE, StandardCharsets.UTF_8);
-			Assertions.assertAll(() -> Assertions.assertFalse(source.contains("incrementPending")),
-					() -> Assertions.assertFalse(source.contains("decrementPending")),
-					() -> Assertions.assertFalse(source.contains("int pending")));
+			String debug = "Only the work queue should track pending or unfinished work.";
+			Assertions.assertAll(debug,
+					() -> Assertions.assertFalse(source.contains("incrementPending"), "Found incrementPending() in PrimeFinder."),
+					() -> Assertions.assertFalse(source.contains("decrementPending"), "Found decrementPending() in PrimeFinder."),
+					() -> Assertions.assertFalse(source.contains("int pending"), "Found int pending in PrimeFinder."));
 		}
 
 		/**
@@ -464,7 +509,8 @@ public class PrimeFinderTest {
 		@Order(4)
 		public void testTaskManager() throws IOException {
 			String source = Files.readString(SOURCE, StandardCharsets.UTF_8);
-			Assertions.assertFalse(source.contains("TaskManager"));
+			String debug = "Do not create a TaskManager class. This functionality should be embedded into the WorkQueue instead.";
+			Assertions.assertFalse(source.contains("TaskManager"), debug);
 		}
 
 		/**
@@ -548,7 +594,9 @@ public class PrimeFinderTest {
 
 			for (int i = 0; i < WARMUP_ROUNDS; i++) {
 				Set<Integer> actual = run(max);
-				Assertions.assertEquals(expected, actual);
+
+				Assertions.assertEquals(expected.size(), actual.size(), PRIMES_DEBUG);
+				Assertions.assertEquals(expected, actual, PRIMES_DEBUG);
 			}
 
 			for (int i = 0; i < TIMED_ROUNDS; i++) {
@@ -556,7 +604,9 @@ public class PrimeFinderTest {
 				Set<Integer> actual = run(max);
 				Instant end = Instant.now();
 
-				Assertions.assertEquals(expected, actual);
+				Assertions.assertEquals(expected.size(), actual.size(), PRIMES_DEBUG);
+				Assertions.assertEquals(expected, actual, PRIMES_DEBUG);
+
 				Duration elapsed = Duration.between(start, end);
 				minimum = elapsed.compareTo(minimum) < 0 ? elapsed : minimum;
 			}
@@ -597,7 +647,7 @@ public class PrimeFinderTest {
 				return PrimeFinder.findPrimes(max, threads);
 			}
 			catch (IllegalArgumentException e) {
-				Assertions.fail("Unexpected exception.", e);
+				Assertions.fail("Unexpected exception while benchmarking.", e);
 				return null;
 			}
 		}
@@ -628,6 +678,12 @@ public class PrimeFinderTest {
 
 	/** Maximum amount of time to wait per test. */
 	public static final Duration GLOBAL_TIMEOUT = Duration.ofSeconds(60);
+
+	/** Debug message when a test times out. */
+	public static final String TIMEOUT_DEBUG = "This test timed out. Deadlock, over-blocking, or over-notifying can cause timeouts.";
+
+	/** Debug message when primes do not match. */
+	public static final String PRIMES_DEBUG = "The expected and actual primes do not match. Under-synchronizing or not waiting until work is finished can cause mismatches.";
 
 	/** Number of warmup rounds to run when benchmarking. */
 	public static final int WARMUP_ROUNDS = 10;
