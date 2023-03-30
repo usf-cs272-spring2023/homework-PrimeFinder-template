@@ -3,7 +3,7 @@ PrimeFinder
 
 ![Points](../../blob/badges/points.svg)
 
-For this homework, you will modify the work queue implementation such that it tracks and waits for pending work, eliminating the need for a "task manager" class) Then, your code should use it to find prime values.
+For this homework, you will modify the work queue implementation such that it tracks and waits for pending work, eliminating the need for a "task manager" class. Then, your code should use it to find prime values.
 
 ## Hints ##
 
